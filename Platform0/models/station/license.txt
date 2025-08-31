@@ -1,0 +1,11 @@
+Model Information:
+* title:	railwayplatform | railway station
+* source:	https://sketchfab.com/3d-models/railwayplatform-railway-station-b488dead525640aa9d79f093f64a2d13
+* author:	hifrakmodeler (https://sketchfab.com/hifrak958)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "railwayplatform | railway station" (https://sketchfab.com/3d-models/railwayplatform-railway-station-b488dead525640aa9d79f093f64a2d13) by hifrakmodeler (https://sketchfab.com/hifrak958) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
