@@ -1,18 +1,23 @@
 【Unity開発で推奨されるライブラリ・パッケージ】
 
-このプロジェクト「8番階段」の品質を向上させ、企画書の演出を完全に実現するために、以下のUnityパッケージの導入を強く推奨します。
+このプロジェクト「8番階段」を実装・実行するために、以下のUnityパッケージの導入が必要です。
 
-1.  **Post-Processing (URPまたはHDRPのVolume機能)**
+0.  **Input System**
+    *   **名前:** Input System
+    *   **詳細:** キーボード・マウスに加え、Nintendo Switch Proコントローラーなどのゲームパッド操作を可能にするために必須のパッケージです。`PlayerController`はこのシステムの利用を前提としています。
+    *   **導入方法:** UnityのPackage Managerから "Input System" をインストールします。インストール後、Unityエディタの再起動と、プロジェクト設定の変更（`Project Settings > Player > Active Input Handling` を `Input System Package (New)` に設定）を促すメッセージが表示される場合があります。
+
+1.  **Post-Processing (URPまたはHDRPのVolume機能) (推奨)**
     *   **名前:** Universal Render Pipeline (URP) または High Definition Render Pipeline (HDRP)
-    *   **詳細:** 企画書にある「壁の歪み」「廊下の溶解歪み」「光と影の錯覚」といった視覚的な恐怖演出を実装するために不可欠です。これらのレンダーパイプラインに含まれるVolumeシステム（旧Post-Processing Stack）を使用することで、ブルーム、色収差、ビネット、レンズ歪みなどのエフェクトをカメラに適用できます。特に、歪み系の表現にはシェーダーと組み合わせたカスタムポストプロセスが必要になる場合があります。
+    *   **詳細:** 企画書にある「壁の歪み」「廊下の溶解歪み」「光と影の錯覚」といった視覚的な恐怖演出を実装するために推奨されます。これらのレンダーパイプラインに含まれるVolumeシステム（旧Post-Processing Stack）を使用することで、ブルーム、色収差、ビネット、レンズ歪みなどのエフェクトをカメラに適用できます。特に、歪み系の表現にはシェーダーと組み合わせたカスタムポストプロセスが必要になる場合があります。
     *   **導入方法:** UnityのPackage Managerから "Universal RP" または "HDRP" をインストールし、プロジェクトのレンダーパイプラインとして設定します。
 
-2.  **TextMeshPro**
+2.  **TextMeshPro (推奨)**
     *   **名前:** TextMeshPro
     *   **詳細:** 現在のUIコードは標準のUI Textを使用していますが、テキスト表示の品質と柔軟性を大幅に向上させるため、TextMeshProの使用を推奨します。特に、タイトル画面やエンディングのテキストをシャープに、かつエフェクト（アウトライン、シャドウなど）をかけて表示したい場合に有効です。
     *   **導入方法:** UnityのPackage Managerからインストールできます。ほぼ全ての新規Unityプロジェクトで標準的に使用されています。
 
-3.  **AI Navigation (NavMeshComponents)**
+3.  **AI Navigation (NavMeshComponents) (推奨)**
     *   **名前:** AI Navigation
     *   **詳細:** 女子高生キャラクターの追跡AIは`NavMeshAgent`を使用しています。現在の実装はUnity標準のナビゲーションシステムで動作しますが、「床が奈落になる」などの動的な地形変化に対応させる場合、より高度なナビゲーションメッシュのベイク（再計算）が必要になる可能性があります。このパッケージは、ランタイムでのナビゲーションメッシュ生成など、より柔軟な機能を提供します。
     *   **導入方法:** UnityのPackage Managerから "AI Navigation" をインストールできます。

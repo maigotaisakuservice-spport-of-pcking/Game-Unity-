@@ -1,38 +1,82 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+
+// このスクリプトは、Unityの新しいInput Systemパッケージがインストールされていることを前提とします。
+// PlayerオブジェクトにPlayerInputコンポーネントをアタッチし、
+// "Move" (Vector2) と "Look" (Vector2) のアクションを設定してください。
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("Settings")]
     public float moveSpeed = 5.0f;
-    public float mouseSensitivity = 2.0f;
+    public float mouseSensitivity = 0.1f; // Input Systemでは感度を低めに設定
+    public float gamepadSensitivity = 100.0f; // ゲームパッド用の感度
 
     private CharacterController characterController;
     private Camera playerCamera;
     private float verticalRotation = 0f;
 
-    void Start()
+    private Vector2 moveInput;
+    private Vector2 lookInput;
+
+    private void Awake()
     {
         characterController = GetComponent<CharacterController>();
         playerCamera = GetComponentInChildren<Camera>();
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
-    void Update()
+    private void Update()
     {
-        // Player Movement
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-        Vector3 moveDirection = transform.forward * vertical + transform.right * horizontal;
+        HandleMovement();
+        HandleLook();
+    }
+
+    // PlayerInputコンポーネントから "Move" アクションがトリガーされたときに呼び出される
+    public void OnMove(InputValue value)
+    {
+        moveInput = value.Get<Vector2>();
+    }
+
+    // PlayerInputコンポーネントから "Look" アクションがトリガーされたときに呼び出される
+    public void OnLook(InputValue value)
+    {
+        lookInput = value.Get<Vector2>();
+    }
+
+    private void HandleMovement()
+    {
+        Vector3 moveDirection = transform.forward * moveInput.y + transform.right * moveInput.x;
         characterController.SimpleMove(moveDirection * moveSpeed);
+    }
 
-        // Mouse Look
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+    private void HandleLook()
+    {
+        // ゲームパッドとマウスで感度を切り替える
+        float sensitivity = IsGamepad() ? gamepadSensitivity : mouseSensitivity;
+        float lookX = lookInput.x * sensitivity * Time.deltaTime;
+        float lookY = lookInput.y * sensitivity * Time.deltaTime;
 
-        transform.Rotate(0, mouseX, 0);
+        // 横方向の回転（プレイヤー本体）
+        transform.Rotate(0, lookX, 0);
 
-        verticalRotation -= mouseY;
+        // 縦方向の回転（カメラ）
+        verticalRotation -= lookY;
         verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
         playerCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0, 0);
+    }
+
+    private bool IsGamepad()
+    {
+        var playerInput = GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.currentControlScheme == "Gamepad")
+        {
+            return true;
+        }
+        // Switch Pro Controller, PS4, Xbox controllers are all under the "Gamepad" scheme
+        return false;
     }
 }
