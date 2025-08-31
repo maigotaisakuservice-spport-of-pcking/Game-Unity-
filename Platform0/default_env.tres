@@ -1,0 +1,10 @@
+[gd_resource type="Environment" load_steps=2 format=3]
+
+[sub_resource type="Sky" id="Sky_qj87h"]
+
+[resource]
+background_mode = 2
+sky = SubResource("Sky_qj87h")
+ambient_light_source = 3
+ambient_light_color = Color(0.15, 0.15, 0.15, 1)
+tonemap_mode = 2

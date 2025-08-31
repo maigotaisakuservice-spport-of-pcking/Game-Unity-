@@ -1,0 +1,71 @@
+[gd_scene load_steps=9 format=3 uid="uid://c6vrtw6dhemqg"]
+
+[ext_resource type="Script" path="res://player.gd" id="1_player"]
+[ext_resource type="Script" path="res://game_manager.gd" id="2_manager"]
+[ext_resource type="Environment" uid="uid://dpskhr3fuhb2w" path="res://default_env.tres" id="3_env"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+height = 1.8
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(2, 2, 1)
+
+[sub_resource type="ConeMesh" id="ConeMesh_1"]
+radius = 0.2
+height = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_train"]
+size = Vector3(1.8, 1.8, 5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_platform"]
+size = Vector3(2, 1, 20)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("2_manager")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("3_env")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 5, 0)
+shadow_enabled = true
+
+[node name="Platform" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_platform")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 8)
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+
+[node name="Train" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -12)
+mesh = SubResource("BoxMesh_train")
+
+[node name="TrainZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -8)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TrainZone"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="LoopZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -10.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LoopZone"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="Anomaly_Cone" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("ConeMesh_1")
+
+[node name="FlickerTimer" type="Timer" parent="."]
+wait_time = 0.2
+
+[connection signal="body_entered" from="TrainZone" to="." method="_on_train_zone_body_entered"]
+[connection signal="body_entered" from="LoopZone" to="." method="_on_loop_zone_body_entered"]
+[connection signal="timeout" from="FlickerTimer" to="." method="_on_flicker_timer_timeout"]
