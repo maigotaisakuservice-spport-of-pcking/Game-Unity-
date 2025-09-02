@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 // このスクリプトは、Unityの新しいInput Systemパッケージがインストールされていることを前提とします。
 // PlayerオブジェクトにPlayerInputコンポーネントをアタッチし、
-// "Move" (Vector2) と "Look" (Vector2) のアクションを設定してください。
+// "Move" (Vector2), "Look" (Vector2), "Sprint" (Button) のアクションを設定してください。
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
@@ -11,8 +11,9 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Settings")]
     public float moveSpeed = 5.0f;
-    public float mouseSensitivity = 0.1f; // Input Systemでは感度を低めに設定
-    public float gamepadSensitivity = 100.0f; // ゲームパッド用の感度
+    public float runSpeedMultiplier = 1.8f;
+    public float mouseSensitivity = 0.1f;
+    public float gamepadSensitivity = 100.0f;
 
     private CharacterController characterController;
     private Camera playerCamera;
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 moveInput;
     private Vector2 lookInput;
+    private bool isSprinting = false;
 
     private void Awake()
     {
@@ -47,10 +49,17 @@ public class PlayerController : MonoBehaviour
         lookInput = value.Get<Vector2>();
     }
 
+    // PlayerInputコンポーネントから "Sprint" アクションがトリガーされたときに呼び出される
+    public void OnSprint(InputValue value)
+    {
+        isSprinting = value.isPressed;
+    }
+
     private void HandleMovement()
     {
+        float currentSpeed = isSprinting ? moveSpeed * runSpeedMultiplier : moveSpeed;
         Vector3 moveDirection = transform.forward * moveInput.y + transform.right * moveInput.x;
-        characterController.SimpleMove(moveDirection * moveSpeed);
+        characterController.SimpleMove(moveDirection * currentSpeed);
     }
 
     private void HandleLook()
@@ -76,7 +85,6 @@ public class PlayerController : MonoBehaviour
         {
             return true;
         }
-        // Switch Pro Controller, PS4, Xbox controllers are all under the "Gamepad" scheme
         return false;
     }
 }
