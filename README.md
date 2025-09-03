@@ -95,5 +95,24 @@
     -   `Canvas`を作成し、`Text`や`Panel`、`Image`を配置します。
     -   `Managers`オブジェクトの`UIManager`コンポーネントを開き、インスペクターの各Publicフィールド（`Floor Text`, `Ending Panel`, `Fade Screen`など）に、作成したUI要素をドラッグ＆ドロップで割り当てます。
 
-### 5. 実行
-以上でセットアップは完了です。Unityエディタの再生ボタンを押して、ゲームを開始してください。
+### 5. モバイル操作（スマホ）用のUIセットアップ
+1.  **コントロールスキームの追加**:
+    -   `Project`ウィンドウで作成した`Input Actions`アセット（例: `PlayerActions`）を開きます。
+    -   `Control Schemes`の`+`を押し、`Touch`という名前の新しいスキームを追加します。`Requirement`は`Touchscreen`に設定します。このスキームにはキー割り当ては不要です。
+2.  **仮想ジョイスティックの作成**:
+    -   `Hierarchy`で`UI > Image`を作成し、`JoystickArea`と名付けます。画面の左下などに配置します。
+    -   `JoystickArea`の子として、もう一つ`UI > Image`を作成し、`JoystickHandle`と名付けます。
+    -   空のGameObject`JoystickManager`を作成し、`On Screen Joystick`スクリプトをアタッチします。
+    -   インスペクターの`Joystick Area`と`Joystick Handle`フィールドに、作成した2つのImageをドラッグ＆ドロップします。
+    -   `Player`オブジェクトの`Player Controller`コンポーネントを開き、`Joystick`フィールドに`JoystickManager`オブジェクトをドラッグ＆ドロップします。
+3.  **スプリントボタンの作成**:
+    -   `Hierarchy`で`UI > Button`を作成し、`SprintButton`と名付けます。画面の右下などに配置します。
+    -   `SprintButton`から、子オブジェクトの`Text`は削除して構いません。
+    -   `SprintButton`に`Event Trigger`コンポーネントを追加します。
+    -   `Add New Event Type`をクリックし、`PointerDown`（ボタンが押された時）を選択します。
+    -   `PointerDown`イベントの`+`を押し、`Player`オブジェクトをスロットにドラッグします。
+    -   `No Function`ドロップダウンから`PlayerController > SetSprinting (bool)`を選択し、チェックボックスをオン（true）にします。
+    -   同様に`PointerUp`（ボタンが離された時）イベントを追加し、`SetSprinting`を選択しますが、今度はチェックボックスをオフ（false）のままにします。
+
+### 6. 実行
+以上でセットアップは完了です。`Player`オブジェクトの`Player Input`コンポーネントで`Default Scheme`を切り替えることで、PCとスマホの操作をテストできます。Unityエディタの再生ボタンを押して、ゲームを開始してください。
