@@ -3,11 +3,25 @@
 これは、企画書に基づいて作成された心理ホラーゲーム「8番階段」のUnityプロジェクト用コードフレームワークです。
 このファイルには、プロジェクトのセットアップに必要な全ての情報が含まれています。
 
-## 目次
-1.  [ゲームの操作方法](#-ゲームの操作方法)
-2.  [必須・推奨パッケージ](#-必須推奨パッケージ)
-3.  [スクリプト概要](#-スクリプト概要)
-4.  [Unityプロジェクトのセットアップ手順](#️-unityプロジェクトのセットアップ手順)
+## 📝 目次
+1.  [前提条件](#-前提条件)
+2.  [ゲームの操作方法](#-ゲームの操作方法)
+3.  [必須・推奨パッケージ](#-必須推奨パッケージ)
+4.  [スクリプト概要](#-スクリプト概要)
+5.  [Unityプロジェクトのセットアップ手順](#️-unityプロジェクトのセットアップ手順)
+
+---
+
+## ✅ 前提条件
+
+プロジェクトをスムーズにセットアップするための推奨環境です。
+
+-   **Unityバージョン:** `Unity 2022.3.x (LTS)`
+    -   長期サポート版（LTS）は安定性が高く、プロジェクトに適しています。他のバージョンでも動作する可能性はありますが、互換性の問題が発生する場合があります。
+-   **レンダーパイプライン:** `Universal Render Pipeline (URP)`
+    -   **理由:** URPは、幅広いプラットフォームで高いパフォーマンスを維持しつつ、ポストプロセスによる豊かな視覚表現（ブルーム、色収差など）が可能なため、本作の心理的恐怖演出に適しています。
+    -   **選択方法:** Unity Hubで新規プロジェクトを作成する際に、`3D (URP)` テンプレートを選択するのが最も簡単です。既存のプロジェクトの場合は、Package ManagerからURPをインストールし、手動で設定する必要があります。
+    -   *注: 提供されているスクリプトは、標準の`Built-in Render Pipeline`でも動作しますが、企画書にあるような高度な視覚効果を実装するにはURPまたはHDRPが推奨されます。*
 
 ---
 
@@ -21,98 +35,76 @@
 
 ## 📦 必須・推奨パッケージ
 
-このプロジェクトを実装・実行するために、以下のUnityパッケージの導入が必要です。
 `Window > Package Manager`からインストールしてください。
 
 ### 必須
 -   **Input System**
-    -   **詳細:** キーボード・マウスに加え、Nintendo Switch Proコントローラーなどのゲームパッド操作を可能にするために必須のパッケージです。`PlayerController`はこのシステムの利用を前提としています。
-    -   **導入方法:** インストール後、Unityエディタの再起動と、プロジェクト設定の変更（`Project Settings > Player > Active Input Handling` を `Input System Package (New)` に設定）を促すメッセージが表示されたら、`Yes`をクリックしてください。
+    -   **詳細:** PC、ゲームパッド、モバイルタッチ操作など、複数の入力方法に対応するために必須のパッケージです。
 
 ### 推奨
--   **Post-Processing (URPまたはHDRPのVolume機能)**
-    -   **詳細:** 企画書にある「壁の歪み」「光と影の錯覚」といった視覚的な恐怖演出を実装するために推奨されます。
--   **TextMeshPro**
-    -   **詳細:** UIのテキスト表示の品質と柔軟性を大幅に向上させます。Unityの標準パッケージです。
--   **AI Navigation**
-    -   **詳細:** 「床が奈落になる」などの動的な地盤変化にAIを対応させる場合、より柔軟なナビゲーション機能を提供します。
+-   **TextMeshPro**: 高品質なUIテキスト表示に。Unity標準パッケージです。
+-   **AI Navigation**: 動的な地形変化にAIを対応させる場合に。
 
 ---
 
 ## 📄 スクリプト概要
 
-このプロジェクトに含まれる主要なスクリプトの役割です。
-
--   `GameManager.cs`: ゲーム全体の状態（現在の階層、ゲームクリアなど）を管理する中心的なスクリプト。
--   `PlayerController.cs`: プレイヤーの移動、視点操作、走行を処理します。`Input System`からの入力を受け取ります。
--   `AnomalyGenerator.cs`: シーン内の異変（`IAnomaly`を実装したスクリプト）を自動で検出し、確率に基づいてランダムに発生させます。
--   `IAnomaly.cs`: 全ての異変スクリプトが従うべきルールを定義した「インターフェース」。`Activate()`と`Deactivate()`メソッドを持ちます。
--   `FlickeringLight.cs`, `PosterAnomaly.cs`: `IAnomaly`を実装した具体的な異変のサンプル。
--   `JkController.cs`: 女子高生キャラクターのAI。プレイヤーを追跡したり、待機場所に戻ったりするロジックを制御します。
--   `StairsTrigger.cs`, `JkTrigger.cs`: プレイヤーが特定のエリアに入ったことを検知するトリガースクリプト。
--   `UIManager.cs`: 階層表示やエンディング画面など、UIの表示・非表示を管理します。
--   `SoundManager.cs`: 効果音やBGMの再生を管理します。
--   `EndingSequence.cs`: 8階到達後のバス帰還演出を制御するスクリプト。
+-   `GameManager.cs`: ゲーム全体の進行（階層、状態）を管理する心臓部。
+-   `PlayerController.cs`: プレイヤーの移動・視点・走行を処理。Input Systemからの入力を受け付けます。
+-   `AnomalyGenerator.cs`: `IAnomaly`を持つ異変オブジェクトを自動検出し、ランダムに発生させます。
+-   `IAnomaly.cs`: 全ての異変が従うべき共通のルール（インターフェース）。
+-   `FlickeringLight.cs`, `PosterAnomaly.cs`: `IAnomaly`を実装した異変のサンプルスクリプト。
+-   `JkController.cs`: 女子高生AI。プレイヤー追跡などを制御します。
+-   `OnScreenJoystick.cs`: モバイル用の仮想ジョイスティックUIのロジック。
 
 ---
 
 ## 🛠️ Unityプロジェクトのセットアップ手順
 
-### 1. 新規プロジェクトとパッケージの準備
-1.  **Unity Hub**で`3D`テンプレートを使い、新しいプロジェクトを作成します。
-2.  `Window > Package Manager`を開き、上記の**必須パッケージ** `Input System` をインストールします。
+### 1. プロジェクト作成とパッケージ導入
+1.  **Unity Hub**で`3D (URP)`テンプレートを使い、`Unity 2022.3.x`で新規プロジェクトを作成します。
+2.  `Window > Package Manager`で、上記の**必須パッケージ** `Input System` をインストールします。
 
 ### 2. スクリプトのインポート
 1.  このリポジトリの`Assets`フォルダの中身を、Unityプロジェクトの`Assets`フォルダにコピーします。
 
 ### 3. Input Actionsの設定
-1.  `Project`ウィンドウで右クリックし、`Create > Input Actions`を選択して、`PlayerActions`などの名前でアセットを作成します。
-2.  作成したアセットをダブルクリックして開きます。
-3.  `Action Maps`の`+`を押し、`Player`などの名前でAction Mapを作成します。
-4.  `Actions`カラムで`+`を3回押し、以下のアクションを作成します。
-    -   `Move`: `Action Type`を`Value`、`Control Type`を`Vector 2`に設定。
-    -   `Look`: `Action Type`を`Value`、`Control Type`を`Vector 2`に設定。
-    -   `Sprint`: `Action Type`を`Button`に設定。
-5.  作成した各アクションに、キーやボタンを割り当てます（例: `Move`に`WASD`、`Look`に`Mouse/Delta`、`Sprint`に`Left Shift`）。
-6.  `Save Asset`ボタンを押して保存します。
+1.  `Project`ウィンドウで右クリックし、`Create > Input Actions`で`PlayerActions`アセットを作成します。
+2.  アセットを開き、`Action Maps`に`Player`を作成します。
+3.  `Actions`に`Move`(Value/Vector2), `Look`(Value/Vector2), `Sprint`(Button)の3つを作成します。
+4.  各アクションにキーを割り当てます（例: `Move`に`WASD`、`Look`に`Mouse/Delta`、`Sprint`に`Left Shift`）。
+5.  `Save Asset`で保存します。
 
 ### 4. シーンのセットアップ
-1.  `File > New Scene`から新しいシーンを作成します。
+1.  `File > New Scene`で新しいシーンを作成します。
 2.  **Playerのセットアップ**:
-    -   `Hierarchy`で`Capsule`を作成し、名前を`Player`に変更します。
-    -   `Player`に`Player Controller (Script)`と`Player Input`コンポーネントを追加します。
-    -   `Player Input`コンポーネントの`Actions`フィールドに、先ほど作成した`PlayerActions`アセットをドラッグ＆ドロップします。
-    -   `Player`のタグを`Player`に設定し、子オブジェクトとして`Camera`を配置します。
+    -   `Capsule`オブジェクトを`Player`と名付け、`PlayerController`と`Player Input`スクリプトを追加します。
+    -   `Player Input`の`Actions`に`PlayerActions`アセットを割り当てます。
+    -   `Player`のタグを`Player`にし、子に`Camera`を配置します。
 3.  **管理オブジェクトのセットアップ**:
-    -   `Create Empty`で`Managers`オブジェクトを作成し、`GameManager`, `UIManager`, `SoundManager`, `AnomalyGenerator`スクリプトをアタッチします。
-4.  **レベルとトリガーの作成**:
+    -   空の`Managers`オブジェクトを作成し、`GameManager`, `UIManager`, `SoundManager`, `AnomalyGenerator`をアタッチします。
+4.  **レベルと異変のセットアップ**:
     -   床や壁、階段の3Dモデルを配置します。
-    -   階段の出入り口にトリガー（`Is Trigger`をオンにしたCube）を置き、`StairsTrigger`スクリプトをアタッチします。インスペクターで`Stair Direction`を設定します。
-5.  **異変オブジェクトの配置**:
-    -   壁に`Quad`を配置してポスターに見立て、`PosterAnomaly.cs`をアタッチします。
-    -   シーンに`Light`を配置し、`FlickeringLight.cs`をアタッチします。
-6.  **UIのセットアップ**:
-    -   `Canvas`を作成し、`Text`や`Panel`、`Image`を配置します。
-    -   `Managers`オブジェクトの`UIManager`コンポーネントを開き、インスペクターの各Publicフィールド（`Floor Text`, `Ending Panel`, `Fade Screen`など）に、作成したUI要素をドラッグ＆ドロップで割り当てます。
-
-### 5. モバイル操作（スマホ）用のUIセットアップ
-1.  **コントロールスキームの追加**:
-    -   `Project`ウィンドウで作成した`Input Actions`アセット（例: `PlayerActions`）を開きます。
-    -   `Control Schemes`の`+`を押し、`Touch`という名前の新しいスキームを追加します。`Requirement`は`Touchscreen`に設定します。このスキームにはキー割り当ては不要です。
-2.  **仮想ジョイスティックの作成**:
-    -   `Hierarchy`で`UI > Image`を作成し、`JoystickArea`と名付けます。画面の左下などに配置します。
-    -   `JoystickArea`の子として、もう一つ`UI > Image`を作成し、`JoystickHandle`と名付けます。
-    -   空のGameObject`JoystickManager`を作成し、`On Screen Joystick`スクリプトをアタッチします。
-    -   インスペクターの`Joystick Area`と`Joystick Handle`フィールドに、作成した2つのImageをドラッグ＆ドロップします。
-    -   `Player`オブジェクトの`Player Controller`コンポーネントを開き、`Joystick`フィールドに`JoystickManager`オブジェクトをドラッグ＆ドロップします。
-3.  **スプリントボタンの作成**:
-    -   `Hierarchy`で`UI > Button`を作成し、`SprintButton`と名付けます。画面の右下などに配置します。
-    -   `SprintButton`から、子オブジェクトの`Text`は削除して構いません。
-    -   `SprintButton`に`Event Trigger`コンポーネントを追加します。
-    -   `Add New Event Type`をクリックし、`PointerDown`（ボタンが押された時）を選択します。
-    -   `PointerDown`イベントの`+`を押し、`Player`オブジェクトをスロットにドラッグします。
-    -   `No Function`ドロップダウンから`PlayerController > SetSprinting (bool)`を選択し、チェックボックスをオン（true）にします。
-    -   同様に`PointerUp`（ボタンが離された時）イベントを追加し、`SetSprinting`を選択しますが、今度はチェックボックスをオフ（false）のままにします。
+    -   階段の出入り口にトリガーを置き、`StairsTrigger`をアタッチします。
+    -   壁に`Quad`を置きポスターに見立て、`PosterAnomaly`スクリプトをアタッチします。
+5.  **モバイルUIのセットアップ (任意)**:
+    1.  **コントロールスキームの追加**: `Project`ウィンドウで`PlayerActions`アセットを開き、`Control Schemes`に`Touch`という名前の新しいスキームを追加します。`Requirement`は`Touchscreen`に設定します。
+    2.  **仮想ジョイスティックの作成**:
+        -   `Hierarchy`で`UI > Image`を作成し`JoystickArea`と名付けます。画面左下に配置します。
+        -   `JoystickArea`の子に`UI > Image`を作成し`JoystickHandle`と名付けます。
+        -   空の`JoystickManager`オブジェクトを作成し、`On Screen Joystick`スクリプトをアタッチします。
+        -   インスペクターで`Joystick Area`と`Joystick Handle`に作成したImageを割り当てます。
+        -   `Player`の`Player Controller`コンポーネントの`Joystick`フィールドに、この`JoystickManager`を割り当てます。
+    3.  **視点操作エリアの作成**:
+        -   `Hierarchy`で`UI > Image`を作成し`LookArea`と名付け、画面右半分を覆うように設定します。
+        -   `Image`コンポーネントのColorのAlphaを0にし、`Raycast Target`はオンのままにします。
+        -   `LookArea`に`Touch Look Area`スクリプトをアタッチします。
+        -   `Player`の`Player Controller`コンポーネントの`Touch Look Area`フィールドに、この`LookArea`を割り当てます。
+    4.  **スプリントボタンの作成**:
+        -   `Hierarchy`で`UI > Button`を作成し`SprintButton`と名付けます。
+        -   `SprintButton`に`Event Trigger`コンポーネントを追加します。
+        -   `PointerDown`イベントを追加し、`Player`オブジェクトの`PlayerController.SetSprinting(true)`を呼び出すように設定します（チェックボックスをオン）。
+        -   `PointerUp`イベントを追加し、`Player`オブジェクトの`PlayerController.SetSprinting(false)`を呼び出すように設定します（チェックボックスはオフ）。
 
 ### 6. 実行
-以上でセットアップは完了です。`Player`オブジェクトの`Player Input`コンポーネントで`Default Scheme`を切り替えることで、PCとスマホの操作をテストできます。Unityエディタの再生ボタンを押して、ゲームを開始してください。
+以上でセットアップは完了です。`Player`の`Player Input`コンポーネントで`Default Scheme`を`Touch`に設定し、Unity Remoteや実機ビルドでテストするか、PCでテストする場合は`Keyboard&Mouse`に設定してください。Unityエディタの再生ボタンを押してゲームを開始します。

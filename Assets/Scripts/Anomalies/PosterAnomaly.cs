@@ -20,9 +20,13 @@ public class PosterAnomaly : MonoBehaviour, IAnomaly
         ExtendingHand
     }
     private PosterAnomalyType anomalyToTrigger;
+    private bool isMovingEyesActive = false;
+    private Transform playerCamera;
 
     private void Awake()
     {
+        playerCamera = Camera.main?.transform;
+
         // 最初は全ての異変オブジェクトを非表示にしておく
         if(movingEyesObject != null) movingEyesObject.SetActive(false);
         if(bloodDripsEffect != null) bloodDripsEffect.Stop();
@@ -39,11 +43,10 @@ public class PosterAnomaly : MonoBehaviour, IAnomaly
         switch (anomalyToTrigger)
         {
             case PosterAnomalyType.MovingEyes:
-                // 例: 目のオブジェクトを表示し、プレイヤーの方向を向くようにする
                 if (movingEyesObject != null)
                 {
                     movingEyesObject.SetActive(true);
-                    // ここにプレイヤーのカメラを追いかけるLookAt処理などをUpdateで追加する
+                    isMovingEyesActive = true;
                 }
                 break;
             case PosterAnomalyType.BloodDrips:
@@ -65,6 +68,8 @@ public class PosterAnomaly : MonoBehaviour, IAnomaly
 
     public void Deactivate()
     {
+        isMovingEyesActive = false;
+
         // 全ての異変をリセットする
         if (movingEyesObject != null) movingEyesObject.SetActive(false);
         if (bloodDripsEffect != null)
@@ -73,5 +78,14 @@ public class PosterAnomaly : MonoBehaviour, IAnomaly
             bloodDripsEffect.Clear();
         }
         if (extendingHandObject != null) extendingHandObject.SetActive(false);
+    }
+
+    private void Update()
+    {
+        if (isMovingEyesActive && movingEyesObject != null && playerCamera != null)
+        {
+            // 目のオブジェクトを常にプレイヤーのカメラに向ける
+            movingEyesObject.transform.LookAt(playerCamera);
+        }
     }
 }

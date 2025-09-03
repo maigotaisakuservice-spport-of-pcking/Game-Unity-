@@ -19,8 +19,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Mobile UI (Optional)")]
     public OnScreenJoystick joystick;
-    // 注: スマホ用のLook操作は、別途画面の右半分をスワイプするようなスクリプトが必要です。
-    // ここでは簡単のため、ジョイスティック入力のみでLookも制御する例を示します。
+    public TouchLookArea touchLookArea;
 
     private CharacterController characterController;
     private Camera playerCamera;
@@ -55,8 +54,10 @@ public class PlayerController : MonoBehaviour
             if (joystick != null)
             {
                 moveInput = joystick.InputDirection;
-                // スマホでは視点操作もジョイスティックで代用する（より良い実装は専用のタッチエリアを設けること）
-                lookInput = joystick.InputDirection;
+            }
+            if (touchLookArea != null)
+            {
+                lookInput = touchLookArea.LookInput;
             }
         }
     }
