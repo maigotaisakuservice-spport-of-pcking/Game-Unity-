@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Minecraft HTML All-in-One</title>
+<style>
+body{margin:0;overflow:hidden;background:#000;font-family:sans-serif}
+#cross{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff;font-size:20px;}
+#ui{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;}
+.slot{width:46px;height:46px;border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;}
+.active{border-color:#ff0}
+#craft{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#222;padding:8px;display:none;}
+.grid{display:grid;grid-template-columns:repeat(3,48px);gap:4px;}
+.cell{width:48px;height:48px;border:1px solid #aaa;color:#fff;display:flex;align-items:center;justify-content:center;}
+#result{margin-top:6px;width:150px;height:40px;border:1px solid #fff;text-align:center;line-height:40px;color:#fff;}
+</style>
+</head>
+<body>
+<div id="cross">+</div>
+<div id="ui">
+  <div class="slot active">手</div>
+  <div class="slot">木</div>
+  <div class="slot">石</div>
+</div>
+<div id="craft">
+  <div class="grid" id="grid"></div>
+  <div id="result">?</div>
+</div>
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js";
+import { PointerLockControls } from "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/PointerLockControls.js";
+import SimplexNoise from "https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/+esm";
+
+/* ===== Audio ===== */
+const AC=new AudioContext();
+const beep=f=>{const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f;o.start();g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+0.12);};
+
+/* ===== Scene ===== */
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87ceeb);
+const cam=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000); cam.position.set(0,6,0);
+const ren=new THREE.WebGLRenderer(); ren.setSize(innerWidth,innerHeight); document.body.appendChild(ren.domElement);
+scene.add(new THREE.AmbientLight(0xffffff,.35));
+const sun=new THREE.DirectionalLight(0xffffff,1); scene.add(sun);
+const ctl=new PointerLockControls(cam,document.body); addEventListener("click",()=>ctl.lock());
+
+/* ===== World / Chunks ===== */
+const CH=16, VIEW=3, noise=new SimplexNoise();
+const geo=new THREE.BoxGeometry(1,1,1);
+const mats={g:new THREE.MeshStandardMaterial({color:0x55aa55}),
+            d:new THREE.MeshStandardMaterial({color:0x8b4513}),
+            s:new THREE.MeshStandardMaterial({color:0x888888})};
+const chunks=new Map(), blocks=new Set(), removed=new Set();
+const ckey=(x,z)=>x+","+z;
+function gen(cx,cz){
+  const grp=new THREE.Group();
+  for(let x=0;x<CH;x++)for(let z=0;z<CH;z++){
+    const wx=cx*CH+x,wz=cz*CH+z;
+    const h=Math.floor((noise.noise2D(wx*.08,wz*.08)+1)*4)+4;
+    for(let y=0;y<h;y++){
+      const id=wx+","+y+","+wz; if(removed.has(id)) continue;
+      let m=mats.s; if(y===h-1)m=mats.g; else if(y>h-4)m=mats.d;
+      const b=new THREE.Mesh(geo,m); b.position.set(wx,y,wz);
+      grp.add(b); blocks.add(b);
+    }
+  }
+  scene.add(grp); chunks.set(ckey(cx,cz),grp);
+}
+function updChunks(){
+  const cx=Math.floor(cam.position.x/CH), cz=Math.floor(cam.position.z/CH);
+  for(let x=-VIEW;x<=VIEW;x++)for(let z=-VIEW;z<=VIEW;z++){
+    const k=ckey(cx+x,cz+z); if(!chunks.has(k)) gen(cx+x,cz+z);
+  }
+  chunks.forEach((g,k)=>{ const [x,z]=k.split(",").map(Number);
+    g.visible=Math.abs(x-cx)<=VIEW && Math.abs(z-cz)<=VIEW;
+  });
+}
+
+/* ===== Controls ===== */
+const keys={}; addEventListener("keydown",e=>keys[e.code]=true); addEventListener("keyup",e=>keys[e.code]=false);
+let tool=0; addEventListener("keydown",e=>{
+  if(e.code.startsWith("Digit")){
+    tool=+e.code[5]-1;
+    document.querySelectorAll(".slot").forEach((s,i)=>s.classList.toggle("active",i===tool));
+  }
+});
+
+/* ===== Particles ===== */
+const parts=[];
+class P{constructor(p){this.m=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.1),
+  new THREE.MeshStandardMaterial({color:0xaaa})); this.v=new THREE.Vector3((Math.random()-.5)*2,Math.random()*2,(Math.random()-.5)*2);
+  this.m.position.copy(p); scene.add(this.m);} u(){this.v.y-=0.08; this.m.position.add(this.v.multiplyScalar(.05));}}
+
+/* ===== Break ===== */
+const ray=new THREE.Raycaster(); let tgt=null,prog=0;
+addEventListener("mousedown",()=>{ray.setFromCamera({x:0,y:0},cam); const h=ray.intersectObjects([...blocks])[0]; if(h){tgt=h.object;prog=0;}});
+addEventListener("mouseup",()=>tgt=null);
+
+/* ===== A* (2D) ===== */
+const nbr=p=>{const[x,z]=p.split(",").map(Number); return [`${x+1},${z}`,`${x-1},${z}`,`${x},${z+1}`,`${x},${z-1}`];};
+function astar(s,g){
+  const o=[s],c={},d={[s]:0};
+  while(o.length){o.sort((a,b)=>d[a]-d[b]);const u=o.shift(); if(u===g)break;
+    for(const n of nbr(u)){const nd=d[u]+1; if(d[n]==null||nd<d[n]){d[n]=nd;c[n]=u;o.push(n);}}
+  } const p=[]; let x=g; while(x){p.push(x); x=c[x];} return p.reverse();
+}
+
+/* ===== Mob/Combat ===== */
+class Zombie{
+  constructor(x,y,z){this.hp=10; this.p=new THREE.Vector3(x,y,z);
+    this.m=new THREE.Mesh(new THREE.BoxGeometry(.8,1.8,.8),new THREE.MeshStandardMaterial({color:0x228833}));
+    scene.add(this.m); this.cd=0;}
+  u(dt){
+    if(this.hp<=0){scene.remove(this.m); return;}
+    const s=`${Math.floor(this.p.x)},${Math.floor(this.p.z)}`;
+    const g=`${Math.floor(cam.position.x)},${Math.floor(cam.position.z)}`;
+    const path=astar(s,g); if(path[1]){
+      const[nx,nz]=path[1].split(",").map(Number);
+      const dir=new THREE.Vector3(nx-this.p.x,0,nz-this.p.z).normalize();
+      this.p.add(dir.multiplyScalar(.03));
+    }
+    if(this.p.distanceTo(cam.position)<1.4 && this.cd<=0){beep(120); this.cd=.6;}
+    this.cd-=dt; this.m.position.copy(this.p);
+  }
+}
+const mobs=[];
+
+/* ===== Craft ===== */
+const craft=document.getElementById("craft"), grid=document.getElementById("grid"), res=document.getElementById("result");
+for(let i=0;i<9;i++){const c=document.createElement("div"); c.className="cell"; grid.appendChild(c);}
+const REC=[{p:[["w","w"],["w","w"]],r:"板"}];
+addEventListener("keydown",e=>{if(e.code==="KeyE") craft.style.display=craft.style.display==="none"?"block":"none";});
+
+/* ===== Save ===== */
+function save(){
+  localStorage.setItem("save",JSON.stringify({
+    cam:{x:cam.position.x,y:cam.position.y,z:cam.position.z},
+    time:T, removed:[...removed]
+  }));
+}
+function load(){
+  const s=JSON.parse(localStorage.getItem("save")||"null");
+  if(s){cam.position.set(s.cam.x,s.cam.y,s.cam.z); T=s.time; s.removed.forEach(id=>removed.add(id));}
+}
+load(); addEventListener("beforeunload",save);
+
+/* ===== Day/Night ===== */
+let T=0;
+
+/* ===== Loop ===== */
+function loop(){
+  requestAnimationFrame(loop);
+  updChunks();
+  if(keys.KeyW)ctl.moveForward(.1); if(keys.KeyS)ctl.moveForward(-.1);
+  if(keys.KeyA)ctl.moveRight(-.1); if(keys.KeyD)ctl.moveRight(.1);
+
+  if(tgt){
+    prog+=[1,3,6][tool]*.02; tgt.material.opacity=1-prog; tgt.material.transparent=true;
+    if(prog>=1){
+      const p=tgt.position.clone(); removed.add(`${p.x},${p.y},${p.z}`);
+      for(let i=0;i<10;i++) parts.push(new P(p));
+      scene.remove(tgt); blocks.delete(tgt); tgt=null; beep(400);
+    }
+  }
+  parts.forEach(p=>p.u());
+  T=(T+5)%24000; const t=T/24000;
+  sun.position.set(Math.sin(t*6.28)*100,Math.cos(t*6.28)*100,0);
+  sun.intensity=Math.max(.2,Math.cos(t*6.28));
+  if(T>13000 && mobs.length<3) mobs.push(new Zombie(cam.position.x+8,5,cam.position.z+8));
+  mobs.forEach(m=>m.u(1/60));
+
+  ren.render(scene,cam);
+}
+loop();
+addEventListener("resize",()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>
